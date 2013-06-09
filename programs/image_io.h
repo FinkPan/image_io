@@ -10,7 +10,8 @@ class pmb
 public:
 	void readPMBFile(const string &filename);
 	void writePMBFile(const string &filename);
-	pmb(){strFileFormat = ""; nWidth = 0; nHeigth = 0;}	//默认构造函数,对其理解不是很好.
+	pmb()
+		: strFileFormat(""), nWidth(0), nHeigth(0) {}	//默认类构造函数
 private:
 	string strFileFormat;
 	vector<string> strComment;
@@ -20,7 +21,5 @@ private:
 	vector<int> vecRow;
 	vector<vector<int>> vecColumn;
 };
-
-
 
 #endif
