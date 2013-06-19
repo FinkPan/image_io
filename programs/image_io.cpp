@@ -27,77 +27,75 @@ void imageIO::ReadimageIOFile(const string &filename)
 	filestr.open(filename,ios_base::in | ios_base::binary);
 	if (filestr)
 	{
-		//get filelength of file:
-		filestr.seekg (0, ios::end);
-		filelength = filestr.tellg();
-		filestr.seekg (0, ios::beg);
+		//读取文件格式
+		filestr >> str_file_format;
 
-		//将数据一次性写入str_image_data
-		str_image_data.resize(filelength);
-		filestr.read (&str_image_data[0],filelength);
-
-		size_t pose_not_letter_or_number = 0;	//指向非字母,非数字
-		size_t pose_is_letter_or_number = 0;		//指向字母或者数字
-
-		/******************处理文件格式***********************/
-		str_file_format.resize(2);							//文件格式固定为P1~P6	即2个字节
-		str_file_format = str_image_data.substr(0,2);		
-		/******************处理文件格式***********************/
-
-
-			/******************处理注释***********************/
+		/******************处理注释***********************/
 		char cdata;			//检查第一个字符是否为'#',用来判断是否为注释
-		int nCommentstart;	//标记注释起始位置
-		pose_not_letter_or_number = str_image_data.find_first_of(" \r\n");									//寻找第一个回车符位置
-		pose_is_letter_or_number = str_image_data.find_first_not_of(" \r\n",pose_not_letter_or_number);		//从第一个回车符开始寻找第一个不是回车符的位置
-		nCommentstart = pose_is_letter_or_number;	
-		cdata = str_image_data[pose_is_letter_or_number];
+		filestr >> cdata;
 		while (cdata == '#')	
 		{
-			pose_not_letter_or_number = str_image_data.find_first_of("\r\n",pose_is_letter_or_number);	//仅查找\r\n,忽略空格
-			pose_is_letter_or_number = str_image_data.find_first_not_of(" \r\n",pose_not_letter_or_number); 
-			cdata = str_image_data[pose_is_letter_or_number];
-			str_comment = str_image_data.substr(nCommentstart, pose_not_letter_or_number - nCommentstart);
-			nCommentstart = pose_is_letter_or_number;
+			filestr.putback(cdata);
+			getline(filestr,str_comment);
 			vec_comment.push_back(str_comment);
+			filestr >> cdata;
 		}
+		filestr.putback(cdata);
 		/******************处理注释***********************/
 
-		/******************处理width***********************/
-		pose_not_letter_or_number = str_image_data.find_first_of(" \r\n",pose_is_letter_or_number);
-		str_width = str_image_data.substr(pose_is_letter_or_number, pose_not_letter_or_number - pose_is_letter_or_number);	
-		nwidth = stoi(str_width);
-		/******************处理width***********************/
+		//读取width
+		filestr >> nwidth;
 
-		/******************处理Height***********************/
-		pose_is_letter_or_number = str_image_data.find_first_not_of(" \r\n",pose_not_letter_or_number);
-		pose_not_letter_or_number = str_image_data.find_first_of(" \r\n",pose_is_letter_or_number);
-		str_height = str_image_data.substr(pose_is_letter_or_number, pose_not_letter_or_number - pose_is_letter_or_number);
-		nheight = stoi(str_height);
-		/******************处理Height***********************/
+		//读取Height
+		filestr >> nheight;
 
+		//读取str_max_value
 		if (str_file_format != "P1" && str_file_format != "P4")	//P1, P4 没有最大值
+			filestr >> nmax_value;
+
+		/******************处理matrix***********************/
+		if (str_file_format == "P1" || str_file_format == "P2" || str_file_format == "P3" )	//P1,P2,P3格式写入vec_text_matrix
 		{
-			/******************处理str_max_value***********************/
-			pose_is_letter_or_number = str_image_data.find_first_not_of(" \r\n",pose_not_letter_or_number);
-			pose_not_letter_or_number = str_image_data.find_first_of(" \r\n",pose_is_letter_or_number);
-			str_max_value = str_image_data.substr(pose_is_letter_or_number, pose_not_letter_or_number - pose_is_letter_or_number);
-			nmax_value = stoi(str_max_value);
-			/******************处理str_max_value***********************/
+			int nlocalnwidth = nwidth;
+			if (str_file_format == "P3")	//P3宽是nwidth的3倍
+				nlocalnwidth = nwidth*3;
+			int nmatrix = 0;
+			int n_max_element = nlocalnwidth * nheight;
+			for (int i = 0; i != n_max_element; ++i)
+			{
+				filestr >> nmatrix;
+				vec_text_matrix.push_back(nmatrix);
+			}
 		}
-
-		/******************处理matrix***********************/
-		pose_is_letter_or_number = str_image_data.find_first_not_of(" \r\n",pose_not_letter_or_number);
-		pose_not_letter_or_number = str_image_data.find_first_of(" \r\n",pose_is_letter_or_number);
-		str_matrix = str_image_data.substr(pose_is_letter_or_number, std::string::npos - pose_is_letter_or_number);	//将剩下的数据全部放到str_matrix
-		/******************处理matrix***********************/
-
-		if (str_file_format == "P1" || str_file_format == "P2" ||str_file_format == "P3" )	//P1,P2,P3格式写入vec_text_matrix
-			TextStrMatrixToVecTextMatrix(str_matrix);
-
 		if (str_file_format == "P4" || str_file_format == "P5" || str_file_format == "P6")	//P4,P5,P6格式写入vec_binary_matrix
-			BinaryStrMatrixToVecBinaryMatrix(str_matrix);
-
+		{
+			
+			int nlocalnwidth = nwidth;
+			if (str_file_format == "P4")	//P4文件格式一个字符表示8个像素
+			{
+				/**************由nwidth计算出宽需要多少个字符*********/
+				div_t divresult;
+				divresult = div (nwidth,8);
+				int nquot = divresult.quot;
+				int nrem = divresult.rem;
+				if (divresult.quot == 0)
+					nlocalnwidth = 1;
+				else if (divresult.rem == 0)
+					nlocalnwidth = divresult.quot;
+				else
+					nlocalnwidth = divresult.quot + 1;
+				/**************由nwidth计算出宽需要多少个字符*********/
+			}
+			if (str_file_format == "P6")	//P6宽是nwidth的3倍
+				nlocalnwidth = nwidth*3;
+			int n_max_element = nlocalnwidth * nheight;
+			char cz = 0;
+			for (int i = 0; i != n_max_element; ++i)
+			{
+				filestr >> cz;
+				vec_binary_matrix.push_back(cz);
+			}
+		}
 		std::cout << "Finsh read the file." << endl;
 	}
 	else
@@ -144,11 +142,11 @@ void imageIO::WriteimageIOFile(const string &filename,bool bBinary)
 					ofilestr << *vec_str_iter << endl;
 
 			//输出宽度和高度
-			ofilestr << str_width << " " << str_height << endl;
+			ofilestr << nwidth << " " << nheight << endl;
 
 			//输出最大值,P1,P4格式没有最大值.
-			if (!str_max_value.empty())
-				ofilestr << str_max_value << endl; 
+			if (nmax_value!=0)
+				ofilestr << nmax_value << endl; 
 
 			//输出Matrix
 			for (int i = 0; i != vec_text_matrix.size(); ++i)
@@ -192,7 +190,7 @@ void imageIO::WriteimageIOFile(const string &filename,bool bBinary)
 					ofilestr << *vec_str_iter << endl;
 
 			//输出宽度和高度
-			ofilestr << str_width << " " << str_height << endl;
+			ofilestr << nwidth << " " << nheight << endl;
 
 			if (str_output_fileformat != "P4")	//二进制输出P4没有最大值,其他最大值为255 (该值参考PS所设)
 				ofilestr << "255" << endl; 
@@ -205,34 +203,6 @@ void imageIO::WriteimageIOFile(const string &filename,bool bBinary)
 	}
 	else
 		std::cout << "Can't not open the output file: " << filename << endl;
-}
-
-//将二进制Matrix转为vec_binary_matrix
-void imageIO::BinaryStrMatrixToVecBinaryMatrix(const string &strSequence)
-{
-	size_t nsize = strSequence.size();
-	vec_binary_matrix.resize(nsize);
-	for (int i = 0; i < nsize; ++i)
-		vec_binary_matrix[i] = strSequence[i];
-}
-
-//将文本Matrix转为vec_text_matrix
-void imageIO::TextStrMatrixToVecTextMatrix(const string &strSequence)
-{
-	size_t pose_not_letter_or_number = 0;
-	size_t pose_is_letter_or_number = 0;
-	int nMatrix;
-	size_t nsize = strSequence.size();
-	pose_not_letter_or_number = strSequence.find_first_not_of("0123456789");
-	string strtemp;
-	while(string::npos != pose_is_letter_or_number)
-	{
-		strtemp = strSequence.substr(pose_is_letter_or_number,pose_not_letter_or_number-pose_is_letter_or_number);
-		nMatrix = stoi(strtemp);
-		vec_text_matrix.push_back(nMatrix);
-		pose_is_letter_or_number = strSequence.find_first_of("0123456789",pose_not_letter_or_number);
-		pose_not_letter_or_number = strSequence.find_first_not_of("0123456789",pose_is_letter_or_number);
-	}
 }
 
 //将VecBinaryMatrix转为ToVecTextMatrix
@@ -367,5 +337,6 @@ int main(int argc, char **argv)
 	else
 		std::cout << "输入参数有错." << endl;
 
+	//system("pause");
 	return 0;
 }
