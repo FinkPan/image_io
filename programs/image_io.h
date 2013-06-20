@@ -13,10 +13,10 @@ public:
 	void WriteimageIOFile(const string &filename,bool bBinary);
 
 	//将VecBinaryMatrix转为ToVecTextMatrix
-	void VecBinaryMatrixToVecTextMatrix();
+	void VecMatrixToVecTextMatrix();
 
 	//将VecTextMatrix转为VecBinaryMatrix
-	void VecTextMatrixToVecBinaryMatrix();
+	//void VecTextMatrixToVecBinaryMatrix();
 
 
 	imageIO()
@@ -30,8 +30,9 @@ private:
 	int nheight;			//高度
 	int nmax_value;			//最大值
 
-	vector<int> vec_binary_matrix;	//二进制Matrix
-	vector<int> vec_text_matrix;	//文本Matrix
+	vector<char> vec_matrix;	//matrix
+
+	vector<int> vec_text_matrix;	//文本Matrix 当需要输出文本格式文件时可用
 };
 
 #endif
