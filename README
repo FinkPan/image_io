@@ -1,3 +1,2 @@
-该项目实现各种格式影像文件的读取和写入。
-
-支持的文件格式包括PBM、PGM、PPM、JPG、PNG、TIF。
+1.学习cmake
+2.按 cppguide.pdf 规范重新写image_io项目
