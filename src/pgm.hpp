@@ -7,15 +7,16 @@ class Pgm: public Image_base
 {
 
 public:
-    Pgm(const std::string &filepath)
+    Pgm(const std::string &filepath):maxvalue_(0)
     {
-        Read(filepath);
+        ReadImage(filepath);
     }
     int GetMaxValue(){ return maxvalue_; }
+    void WriteImage(const std::string&,bool bBinary = true);
 private:
-    void Read(const std::string&);
-    void ReadMatrixP2(std::ifstream&,int offset);
-    void ReadMatrixP5(std::ifstream&,int offset);
+    void ReadImage(const std::string&);
+    void ReadMatrixP2(std::ifstream&);
+    void ReadMatrixP5(std::ifstream&);
     int maxvalue_;
 };
 
