@@ -7,13 +7,14 @@ class Pbm: public Image_base
 {
 
 public:
-    Pbm(const std::string &filepath)
+    Pbm(std::ifstream &filedata)
     {
-        ReadImage(filepath);
+        ReadImage(filedata);
     }
     void WriteImage(const std::string&,bool bBinary = true);
 private:
-    void ReadImage(const std::string&);
+    void BinaryMatrixToTextMatrix();
+    void ReadImage(std::ifstream&);
     void ReadMatrixP1(std::ifstream&);
     void ReadMatrixP4(std::ifstream&);
 };

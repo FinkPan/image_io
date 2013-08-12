@@ -1,20 +1,77 @@
 #include "image_io.hpp"
 
+#  define EQUAL(a,b)              (_stricmp(a,b)==0)
 
-int main()
+static void Usage()		//Usage
 {
-    Pbm p1("E:\\git_workspace\\image_io\\build\\test_data\\p1.pgm");
-    std::cout << "\nfileformat: " << p1.GetFileFormat()
-              << "\nwidth: " << p1.GetWidth()
-              << "\nheight: " << p1.GetHeight();
-    p1.WriteImage("E:\\git_workspace\\image_io\\build\\test_data\\p1_out.pgm",false);
-    p1.WriteImage("E:\\git_workspace\\image_io\\build\\test_data\\p4_out.pgm");
-    Pgm p2("E:\\git_workspace\\image_io\\build\\test_data\\p2.pgm");
-    std::cout << "\n\nfileformat: " << p2.GetFileFormat()
-        << "\nwidth: " << p2.GetWidth()
-        << "\nheight: " << p2.GetHeight()
-        << "\nmaxvalue: " << p2.GetMaxValue();
-    p2.WriteImage("E:\\git_workspace\\image_io\\build\\test_data\\p2_out.pgm",false);
-    p2.WriteImage("E:\\git_workspace\\image_io\\build\\test_data\\p5_out.pgm");
+    printf(
+        "\n\nUsage: image_io [-in inputfile] [-ou [-b] outfile]\n"
+        "-in : inputfile.\n"
+        "-ou : outfile\n"
+        "-b : write outfile by binary.\n"
+        );
+}
+
+int main(int argc, char **argv)
+{
+
+    const char* input_file_name = NULL;
+    const char* output_file_name = NULL;
+    bool binary_file = false;
+
+    for (int i = 1; i < argc; i++)
+    {
+        if (EQUAL(argv[i],"-in"))
+        {
+            input_file_name = argv[++i];
+        }
+        else if (EQUAL(argv[i],"-ou"))
+        {
+            if ((EQUAL(argv[++i],"-b")))
+            {
+                binary_file = true;
+                output_file_name = argv[++i];
+            }
+            else
+                output_file_name = argv[i];
+
+        }
+        else
+        {
+            i = argc;
+            Usage();
+        }
+    }
+    if (!input_file_name == NULL && !output_file_name == NULL)
+    {
+        std::string fileformat;
+        std::ifstream filedata;
+
+        fileformat = ImageLoad(input_file_name,filedata);
+
+        if (fileformat == "P1" || fileformat == "P4")
+        {
+            Pbm mypbm(filedata);
+            mypbm.WriteImage(output_file_name,binary_file);
+        }
+        else if (fileformat == "P2" || fileformat == "P5")
+        {
+           Pgm mypgm(filedata);
+           mypgm.WriteImage(output_file_name,binary_file);
+        }
+        else if (fileformat == "P3" || fileformat == "P6")
+        {
+           Ppm myppm(filedata);
+           myppm.WriteImage(output_file_name,binary_file);
+        }
+        else
+        {
+            std::cout << "无法读取文件或者文件格式非法!" << std::endl;
+        }
+        filedata.close();
+    }
+    else
+        Usage();
+
     return 0;
 }
