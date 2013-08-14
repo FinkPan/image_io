@@ -16,7 +16,7 @@ public:
     typedef std::vector<int> ImageTextMatrix;
 
     Image_base():width_(0),height_(0){}
-    virtual void ReadImage(std::ifstream&)=0;
+    virtual void ReadImage(const std::string&)=0;
     virtual void WriteImage(const std::string&,bool bBinary = true)=0;
    
     
