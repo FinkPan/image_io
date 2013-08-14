@@ -1,5 +1,9 @@
 #include "Pbm.hpp"
 #include <cstdlib>
+#include <iterator>
+#include <fstream>
+#include <bitset>
+
 
 void Pbm::ReadImage(std::ifstream &filedata)
 {
@@ -33,10 +37,31 @@ void Pbm::ReadImage(std::ifstream &filedata)
 
 void Pbm::ReadMatrixP1(std::ifstream &filedata)
 {
-    int bp1 = 0;
+    bool bp1 = 0;
     char cp1 = 0x00;
     int cntwidth = 1;	//宽度计数机
     int cntchar = 0;	//字符位数计数机
+//     std::bitset<8> bitbyte;
+//     for (size_t i = 0; i < height_; ++i)
+//     {
+//         for (size_t j = 0, bitoff = 0; j < width_; ++j, ++bitoff)
+//         {
+//             filedata >> bdata;
+//             if (bitoff > 7)
+//             {
+//                 bitoff = 0;
+//                 cp1.to_ulong();
+//             }
+//             bitbyte[bitoff] = bdata;
+//            
+//         }
+//     }
+// 
+
+
+
+
+
     for (int i = 0; i != width_ * height_; ++i)	//循环 nwidth * nheight 次
     {
         filedata >> bp1;
@@ -61,7 +86,6 @@ void Pbm::ReadMatrixP1(std::ifstream &filedata)
             ++cntchar;
             ++cntwidth;
         }
-
     }
 }
 
@@ -97,34 +121,32 @@ void Pbm::WriteImage(const std::string &filepath,bool bBinary)
     {
         if (bBinary)
         {
-            ofiledata << "P4" << std::endl;
+            ofiledata << "P4" << "\n";
             //输出宽度和高度
-            ofiledata << width_ << " " << height_ << std::endl;
-            for (int i = 0; i != matrix_.size(); ++i)
-                ofiledata.put(static_cast<char>(matrix_[i]));
+            ofiledata << width_ << " " << height_ << "\n";
+            std::ostream_iterator<int8_t> out_iterator(ofiledata);  //直接输出matrix_
+            std::copy(matrix_.begin(),matrix_.end(),out_iterator);
         }
         else
         {
-            ofiledata << "P1" << std::endl;
-            //输出宽度和高度
-            ofiledata << width_ << " " << height_ << std::endl;
             BinaryMatrixToTextMatrix();	//将二进制Matrix转为文本Matrix
+            ofiledata << "P1" << "\n";
+            //输出宽度和高度
+            ofiledata << width_ << " " << height_ << "\n";
+ 
             int nenter = 0;
             for (int i = 0; i != textmatrix_.size(); ++i)
             {
                 ofiledata << textmatrix_[i];
                 nenter = i + 1;
-                //宽度输出回车,否则输出空白符.
+                //宽度输出回车,否则输出空白符,文件结尾什么都不输出
                 if ((nenter % width_ == 0) && (nenter != textmatrix_.size()))
-                {
-                    ofiledata << std::endl;
-                }
+                    ofiledata << "\n";
                 else if(nenter == textmatrix_.size())
                     ;
                 else
                     ofiledata << " ";
             }
-        
         }
          ofiledata.close();
     }
@@ -134,26 +156,19 @@ void Pbm::WriteImage(const std::string &filepath,bool bBinary)
 
 void Pbm::BinaryMatrixToTextMatrix()
 {
-    int nbitwidth = 0;	//行标记,如果行nbitwidth大于nwidth,忽略后面行;
-    size_t nsize = matrix_.size();
-    for (size_t i = 0; i < nsize; ++i)
+    for (size_t i = 0, index = 0; i < height_; ++i,++index) //共有height_行
     {
-        nbitwidth = 0;	//重置行
-        for (int j = 0; j < 8; j++)
+        for (int j = 0,bitoff = 0; j < width_; ++j,++bitoff) //共有width_列
         {
-            //将一个字节每一位和matrix_[i] 与 运算,如果为真,matrix_[i],写入1,否则写入0
-            if((nbitwidth < width_) && matrix_[i] & (0x80 >> j))		
+            if (bitoff > 7) //位大于7重置为0
             {
+                bitoff = 0;
+                ++index; 
+            }
+            if(matrix_[index] & (0x80 >> bitoff))	
                 textmatrix_.push_back(1);
-                ++nbitwidth;
-            }
-            else if((nbitwidth < width_))
-            {
+            else
                 textmatrix_.push_back(0);
-                ++nbitwidth;
-            }
-            else	//行nbitwidth大于nwidth,忽略后面行;
-                break;	
         }
     }
 }

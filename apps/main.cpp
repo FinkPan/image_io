@@ -1,5 +1,6 @@
 #include "image_io.hpp"
 
+
 #  define EQUAL(a,b)              (_stricmp(a,b)==0)
 
 static void Usage()		//Usage
@@ -51,7 +52,10 @@ int main(int argc, char **argv)
 
         if (fileformat == "P1" || fileformat == "P4")
         {
+            
             Pbm mypbm(filedata);
+            
+            
             mypbm.WriteImage(output_file_name,binary_file);
         }
         else if (fileformat == "P2" || fileformat == "P5")

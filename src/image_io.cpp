@@ -8,6 +8,7 @@ std::string ImageLoad(const std::string &filename,std::ifstream &filedata)
     {
         filedata >> fileformat;
         filedata.seekg(0,filedata.beg);
+        filedata.close();
         return fileformat;
     }
     else

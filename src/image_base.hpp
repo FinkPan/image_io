@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <cstdint>  //定义一个8位的int8_t
+#include <sstream>
 
 
 class Image_base
