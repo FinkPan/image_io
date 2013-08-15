@@ -1,8 +1,11 @@
 #include "ppm.hpp"
 
-void Ppm::ReadImage(std::ifstream &filedata)
+void Ppm::ReadImage(const std::string &filename)
 {
-
+    std::ifstream filedata;
+    filedata.open(filename,std::ios_base::in | std::ios_base::binary);
+    if (filedata)
+    {
         std::string tempstr;
         filedata >> file_format_;   //读取文件格式
         SkipComments(filedata);
@@ -13,45 +16,41 @@ void Ppm::ReadImage(std::ifstream &filedata)
         filedata >> maxvalue_;      //读取最大值   
         SkipComments(filedata);
 
-        if (file_format_ == "P3" || file_format_ == "p3")
+        if (maxvalue_ > 255)
+        {
+            std::cout << "PPM文件最大值大于255,程序大于255值不支持!" << std::endl;
+            exit(1);
+        }
+        if (file_format_ == "P3")
             ReadMatrixP3(filedata);
-        else if(file_format_ == "P6" || file_format_ == "p6")
+        else if(file_format_ == "P6")
             ReadMatrixP6(filedata);
         else
             std::cout << "\n读取PGM文件失败!" << std::endl;
+        filedata.close();
+    }
 }
 
 void Ppm::ReadMatrixP3(std::ifstream &filedata)
 {
-    std::cout << "\n读取P3文件!" << std::endl;
-
-    if (maxvalue_ != 255)
+    int ndataR = 0; int ndataG = 0; int ndataB = 0;
+    PPMRGBbinary colour;
+    for (size_t i = 0; i != width_ * height_; ++i)
     {
-        std::cout << "最大值不是255,不是标准的ppm文件!\n";
-    }
-    else
-    {
-        int ndataR = 0; int ndataG = 0; int ndataB = 0;
-        PPMRGBbinary colour;
-        for (size_t i = 0; i != width_ * height_; ++i)
-        {
-            filedata >> ndataR;
-            filedata >> ndataG;
-            filedata >> ndataB;
-            if (ndataR > maxvalue_ || ndataG > maxvalue_ || ndataB > maxvalue_) //检查数值是否大于最大值
-            {
-                std::cout << "\n\n数值大于最大值255!不是标准的ppm文件!\n";
-                exit(1);
-            }
-            colour.R = static_cast<int>(ndataR);
-            colour.G = static_cast<int>(ndataG);
-            colour.B = static_cast<int>(ndataB);
+        filedata >> ndataR;
+        filedata >> ndataG;
+        filedata >> ndataB;
+//         if (ndataR > maxvalue_ || ndataG > maxvalue_ || ndataB > maxvalue_) //检查数值是否大于最大值
+//         {
+//             std::cout << "\n\n数值大于最大值!文件格式错误!\n";
+//             exit(1);
+//         }
+        colour.R = static_cast<int>(ndataR);
+        colour.G = static_cast<int>(ndataG);
+        colour.B = static_cast<int>(ndataB);
 
-            matrix_byte_.push_back(colour);
-        }
+        matrix_byte_.push_back(colour);
     }
-    std::cout << "Finsh read the file." << std::endl;
-
 }
 
 void Ppm::ReadMatrixP6(std::ifstream &filedata)
@@ -65,8 +64,6 @@ void Ppm::ReadMatrixP6(std::ifstream &filedata)
         filedata >> colour.B;
         matrix_byte_.push_back(colour);
     }
-    std::cout << "Finsh read the file." << std::endl;
-
 }
 
 void Ppm::WriteImage(const std::string &filepath, bool bBinary)
@@ -79,7 +76,7 @@ void Ppm::WriteImage(const std::string &filepath, bool bBinary)
             ofiledata << "P6" << std::endl;
             //输出宽度和高度
             ofiledata << width_ << " " << height_ << std::endl;
-            ofiledata << 255 << std::endl;	//所有的最大值都为255
+            ofiledata << maxvalue_ << std::endl;	//所有的最大值都为255
             for (int i = 0; i != matrix_byte_.size(); ++i)
             {
                 ofiledata.put(static_cast<char>(matrix_byte_[i].R));
@@ -92,7 +89,7 @@ void Ppm::WriteImage(const std::string &filepath, bool bBinary)
             ofiledata << "P3" << std::endl;
             //输出宽度和高度
             ofiledata << width_ << " " << height_ << std::endl;
-            ofiledata << 255 << std::endl;	//所有的最大值都为255
+            ofiledata << maxvalue_ << std::endl;
             BinaryMatrixToTextMatrix();
             int nenter = 0;
             int ntotal = width_*height_;
@@ -123,15 +120,41 @@ void Ppm::WriteImage(const std::string &filepath, bool bBinary)
 
 void Ppm::BinaryMatrixToTextMatrix()
 {
-    size_t nsize = matrix_byte_.size();
-    matrix_int_.resize(nsize);
-    PPMRGText textcolour;
-    int nmark = 0x00ff;	//屏蔽高8位数
-    for (size_t i = 0; i < nsize; ++i)
+    matrix_int_.resize(matrix_byte_.size());
+    PPMRGBText textcolour;
+    for (size_t i = 0; i != matrix_byte_.size(); ++i)
     {
-        textcolour.R = matrix_byte_[i].R & nmark;	//屏蔽高8位数
-        textcolour.G = matrix_byte_[i].G & nmark;
-        textcolour.B = matrix_byte_[i].B & nmark;
+        textcolour.R = matrix_byte_[i].R & 0xff;	//屏蔽高8位数
+        textcolour.G = matrix_byte_[i].G & 0xff;
+        textcolour.B = matrix_byte_[i].B & 0xff;
         matrix_int_[i] = textcolour;
     }
+}
+
+Ppm::PPMRGBText Ppm::GetPixelValue(const unsigned int row,const unsigned int column)
+{
+    if (row > width_ || column > height_)
+    {
+        std::cout << "输入的行列大于文件: " << width_ << " * " << height_;
+    }
+    else
+    {
+        BinaryMatrixToTextMatrix();
+        return matrix_int_[column+row*width_];
+    }
+
+}
+
+void Ppm::SetPixelValue(const int row,const int column,int R,int G,int B)
+{
+    if (R > maxvalue_ || G > maxvalue_ || B > maxvalue_)
+    {
+        std::cout << "输入的RGB值大于255,程序不支持大于255的RGB值.\n";
+    }
+    PPMRGBbinary color;
+    color.R = R;
+    color.G = G;
+    color.B = B;
+    matrix_byte_[column+row*width_] = color;
+
 }

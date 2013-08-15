@@ -63,7 +63,7 @@ void Pgm::WriteImage(const std::string &filepath, bool bBinary)
             ofiledata << "P5" << std::endl;
             //输出宽度和高度
             ofiledata << width_ << " " << height_ << std::endl;
-            ofiledata << maxvalue_ << std::endl;	//所有的最大值都为255
+            ofiledata << maxvalue_ << std::endl;
             std::ostream_iterator<int8_t> out_iterator(ofiledata);  //直接输出matrix_byte_
             std::copy(matrix_byte_.begin(),matrix_byte_.end(),out_iterator);
         }
@@ -72,7 +72,7 @@ void Pgm::WriteImage(const std::string &filepath, bool bBinary)
             ofiledata << "P2" << std::endl;
             //输出宽度和高度
             ofiledata << width_ << " " << height_ << std::endl;
-            ofiledata << maxvalue_ << std::endl;	//所有的最大值都为255
+            ofiledata << maxvalue_ << std::endl;
             BinaryMatrixToTextMatrix();
             int nenter = 0;
             for (int i = 0; i != matrix_int_.size(); ++i)
@@ -105,7 +105,7 @@ void Pgm::BinaryMatrixToTextMatrix()
 
 int Pgm::GetPixelValue(int row, int column) const
 {
-    return matrix_byte_[row+column*width_];
+    return matrix_byte_[column+row*width_];
 }
 
 void Pgm::SetPixelValue(int row, int column,const int setvalue)
@@ -115,5 +115,5 @@ void Pgm::SetPixelValue(int row, int column,const int setvalue)
         std::cout << "设置的值: " << setvalue << " 大于最大值: " << maxvalue_ << std::endl;
     }
     else
-        matrix_byte_[row+column*width_] = setvalue;
+        matrix_byte_[column+row*width_] = setvalue;
 }

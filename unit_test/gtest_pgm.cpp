@@ -6,16 +6,16 @@ Pgm PGM1;
 
 TEST(Pgm,ReadImage)
 {
-    PGM1.ReadImage("E:\\git_workspace\\image_io\\build\\apps\\p5.pgm");
+    PGM1.ReadImage("E:\\git_workspace\\image_io\\build\\apps\\p2.pgm");
 }
 
 TEST(Pgm,GetMaxValue)
 {
-    EXPECT_EQ(255,PGM1.GetMaxValue());
+    EXPECT_EQ(15,PGM1.GetMaxValue());
 }
 TEST(Pgm,GetFileFormat)
 {
-    EXPECT_EQ("P5",PGM1.GetFileFormat());
+    EXPECT_EQ("P2",PGM1.GetFileFormat());
 }
 TEST(Pgm,GetWidth)
 {
@@ -27,16 +27,16 @@ TEST(Pgm,GetHeight)
 }
 TEST(Pgm,GetPixelValue)
 {
-    EXPECT_EQ(0,PGM1.GetPixelValue(0,0));
+    EXPECT_EQ(4,PGM1.GetPixelValue(0,3));
 }
 
-TEST(Pgm,SetPixelValue)
-{
-    PGM1.SetPixelValue(1,1,15);
-    EXPECT_EQ(15,PGM1.GetPixelValue(1,1));
-}
+// TEST(Pgm,SetPixelValue)
+// {
+//     PGM1.SetPixelValue(0,3,15);
+//     EXPECT_EQ(15,PGM1.GetPixelValue(0,3));
+// }
 
 TEST(Pgm,WriteImage)
 {
-    PGM1.WriteImage("E:\\git_workspace\\image_io\\build\\apps\\p5_out_gtest.pgm",false);
+    PGM1.WriteImage("E:\\git_workspace\\image_io\\build\\apps\\p2_out_gtest.pgm",false);
 }

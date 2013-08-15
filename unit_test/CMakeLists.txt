@@ -3,7 +3,8 @@ include_directories(${PROJECT_SOURCE_DIR}/include/image_io/)
 include_directories(${PROJECT_SOURCE_DIR}/src/)
 
 #源文件
-set(gtest_unit gtest_pgm.cpp)
+set(gtest_unit gtest_pgm.cpp
+			   gtest_ppm.cpp)
 #生成可执行文件			  
 add_library(gtest_unit ${gtest_unit})
 #设置依赖的动态库
