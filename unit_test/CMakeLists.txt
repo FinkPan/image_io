@@ -1,12 +1,13 @@
 #包含include搜索			  
 include_directories(${PROJECT_SOURCE_DIR}/include/image_io/)
 include_directories(${PROJECT_SOURCE_DIR}/src/)
-set(gtest_unit gtest_unit.cpp)
+
+#源文件
+set(gtest_unit gtest_pgm.cpp)
 #生成可执行文件			  
 add_library(gtest_unit ${gtest_unit})
 #设置依赖的动态库
-#target_link_libraries(gtest_unit image_io)
-
+target_link_libraries(gtest_unit image_io "E:/LIB/gtest-1.6.0/gtestlib/lib/gtestd.lib")
 
 
 include_directories(E:/LIB/gtest-1.6.0/gtestlib/include/)

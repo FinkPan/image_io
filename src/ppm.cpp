@@ -47,7 +47,7 @@ void Ppm::ReadMatrixP3(std::ifstream &filedata)
             colour.G = static_cast<int>(ndataG);
             colour.B = static_cast<int>(ndataB);
 
-            matrix_.push_back(colour);
+            matrix_byte_.push_back(colour);
         }
     }
     std::cout << "Finsh read the file." << std::endl;
@@ -63,7 +63,7 @@ void Ppm::ReadMatrixP6(std::ifstream &filedata)
         filedata >> colour.R;
         filedata >> colour.G;
         filedata >> colour.B;
-        matrix_.push_back(colour);
+        matrix_byte_.push_back(colour);
     }
     std::cout << "Finsh read the file." << std::endl;
 
@@ -80,11 +80,11 @@ void Ppm::WriteImage(const std::string &filepath, bool bBinary)
             //输出宽度和高度
             ofiledata << width_ << " " << height_ << std::endl;
             ofiledata << 255 << std::endl;	//所有的最大值都为255
-            for (int i = 0; i != matrix_.size(); ++i)
+            for (int i = 0; i != matrix_byte_.size(); ++i)
             {
-                ofiledata.put(static_cast<char>(matrix_[i].R));
-                ofiledata.put(static_cast<char>(matrix_[i].G));
-                ofiledata.put(static_cast<char>(matrix_[i].B));
+                ofiledata.put(static_cast<char>(matrix_byte_[i].R));
+                ofiledata.put(static_cast<char>(matrix_byte_[i].G));
+                ofiledata.put(static_cast<char>(matrix_byte_[i].B));
             }
         }
         else    //输出文本格式PPM
@@ -96,14 +96,14 @@ void Ppm::WriteImage(const std::string &filepath, bool bBinary)
             BinaryMatrixToTextMatrix();
             int nenter = 0;
             int ntotal = width_*height_;
-            for (size_t i = 0; i != textmatrix_.size(); ++i)
+            for (size_t i = 0; i != matrix_int_.size(); ++i)
             {
                 ofiledata.width(3);	//文本文件设置宽度为3,对齐数字比较整齐
-                ofiledata << std::left << textmatrix_[i].R << " ";
+                ofiledata << std::left << matrix_int_[i].R << " ";
                 ofiledata.width(3);
-                ofiledata << std::left << textmatrix_[i].G << " ";
+                ofiledata << std::left << matrix_int_[i].G << " ";
                 ofiledata.width(3);
-                ofiledata << std::left << textmatrix_[i].B;
+                ofiledata << std::left << matrix_int_[i].B;
                 nenter = i +1;
                 if ((nenter % width_ == 0) && (nenter != ntotal))
                 {
@@ -123,15 +123,15 @@ void Ppm::WriteImage(const std::string &filepath, bool bBinary)
 
 void Ppm::BinaryMatrixToTextMatrix()
 {
-    size_t nsize = matrix_.size();
-    textmatrix_.resize(nsize);
+    size_t nsize = matrix_byte_.size();
+    matrix_int_.resize(nsize);
     PPMRGText textcolour;
     int nmark = 0x00ff;	//屏蔽高8位数
     for (size_t i = 0; i < nsize; ++i)
     {
-        textcolour.R = matrix_[i].R & nmark;	//屏蔽高8位数
-        textcolour.G = matrix_[i].G & nmark;
-        textcolour.B = matrix_[i].B & nmark;
-        textmatrix_[i] = textcolour;
+        textcolour.R = matrix_byte_[i].R & nmark;	//屏蔽高8位数
+        textcolour.G = matrix_byte_[i].G & nmark;
+        textcolour.B = matrix_byte_[i].B & nmark;
+        matrix_int_[i] = textcolour;
     }
 }

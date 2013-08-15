@@ -7,3 +7,9 @@ set(apps main.cpp)
 add_executable(apps ${apps})
 #设置依赖的动态库
 target_link_libraries(apps image_io)
+
+set(PgmTest PgmTest.cpp)
+#生成可执行文件			  
+add_executable(PgmTest ${PgmTest})
+#设置依赖的动态库
+target_link_libraries(PgmTest image_io)

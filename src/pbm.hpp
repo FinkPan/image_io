@@ -7,10 +7,6 @@ class Pbm: public Image_base
 {
 
 public:
-    Pbm(const std::string &filename)
-    {
-        ReadImage(filename);
-    }
     void WriteImage(const std::string&,bool bBinary = true);
     void ReadImage(const std::string&);
 private:

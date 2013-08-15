@@ -49,18 +49,20 @@ int main(int argc, char **argv)
         std::ifstream filedata;
 
         //fileformat = ImageLoad(input_file_name,filedata);
-        fileformat = "P1";
+        fileformat = "P5";
 
         if (fileformat == "P1" || fileformat == "P4")
         {
             
-            Pbm mypbm(input_file_name);
+            Pbm mypbm;
+            mypbm.ReadImage(input_file_name);
             mypbm.WriteImage(output_file_name,binary_file);
         }
         else if (fileformat == "P2" || fileformat == "P5")
         {
-           //Pgm mypgm(filedata);
-           //mypgm.WriteImage(output_file_name,binary_file);
+           Pgm mypgm;
+           mypgm.ReadImage(input_file_name);
+           mypgm.WriteImage(output_file_name,binary_file);
         }
         else if (fileformat == "P3" || fileformat == "P6")
         {

@@ -35,25 +35,25 @@ void Pbm::ReadMatrixP1(std::ifstream &filedata)
     bool bdata = 0;
     std::bitset<8> bitbyte;
     int8_t n8data = 0x00;
-    for (size_t i = 0; i < height_; ++i)
+    for (int i = 0; i < height_; ++i)
     {
-        for (size_t j = 0, bitoff = 7; j < width_; ++j, --bitoff)
+        for (int j = 0, bitoff = 7; j < width_; ++j, --bitoff)
         {
             filedata >> bdata;
             if (bitoff == 0) //bitoff满8位时转为ini8_t
             {
                 bitbyte[bitoff] = bdata;
-                n8data = bitbyte.to_ulong();
-                matrix_.push_back(n8data);
+                n8data = static_cast<int8_t>(bitbyte.to_ulong());
+                matrix_byte_.push_back(n8data);
 
                 bitoff = 8;     //重置bitoff,并重置bitbyte.
                 bitbyte.reset();
                 continue;
             }
-            bitbyte[bitoff] = bdata; //bitoff不满8位且j未达到width_时写入matrix_
+            bitbyte[bitoff] = bdata; //bitoff不满8位且j未达到width_时写入matrix_byte_
         }
-        n8data = bitbyte.to_ulong(); //bitoff不满8位但j达到width_时写入matrix_
-        matrix_.push_back(n8data);
+        n8data = static_cast<int8_t>(bitbyte.to_ulong()); //bitoff不满8位但j达到width_时写入matrix_byte_
+        matrix_byte_.push_back(n8data);
     }
 }
 
@@ -74,9 +74,9 @@ void Pbm::ReadMatrixP4(std::ifstream &filedata)
     /**************由width_计算出宽需要多少个字符*********/
 
     size_t sizematrix = column_width*height_;
-    std::istream_iterator<int8_t> in_iterator(filedata);  //直接输出matrix_
+    std::istream_iterator<int8_t> in_iterator(filedata);  //直接输出matrix_byte_
     std::istream_iterator<int8_t> eof;
-    std::copy(in_iterator,eof,back_inserter(matrix_));
+    std::copy(in_iterator,eof,back_inserter(matrix_byte_));
 
 }
 
@@ -90,8 +90,8 @@ void Pbm::WriteImage(const std::string &filepath,bool bBinary)
             ofiledata << "P4" << std::endl;
             //输出宽度和高度
             ofiledata << width_ << " " << height_ << std::endl;
-            std::ostream_iterator<int8_t> out_iterator(ofiledata);  //直接输出matrix_
-            std::copy(matrix_.begin(),matrix_.end(),out_iterator);
+            std::ostream_iterator<int8_t> out_iterator(ofiledata);  //直接输出matrix_byte_
+            std::copy(matrix_byte_.begin(),matrix_byte_.end(),out_iterator);
         }
         else
         {
@@ -100,14 +100,14 @@ void Pbm::WriteImage(const std::string &filepath,bool bBinary)
             //输出宽度和高度
             ofiledata << width_ << " " << height_ << "\n";
             int nenter = 0;
-            for (int i = 0; i != textmatrix_.size(); ++i)
+            for (int i = 0; i != matrix_int_.size(); ++i)
             {
-                ofiledata << textmatrix_[i];
+                ofiledata << matrix_int_[i];
                 nenter = i + 1;
                 //宽度输出回车,否则输出空白符,文件结尾什么都不输出
-                if ((nenter % width_ == 0) && (nenter != textmatrix_.size()))
+                if ((nenter % width_ == 0) && (nenter != matrix_int_.size()))
                     ofiledata << "\n";
-                else if(nenter == textmatrix_.size())
+                else if(nenter == matrix_int_.size())
                     ;
                 else
                     ofiledata << " ";
@@ -121,7 +121,7 @@ void Pbm::WriteImage(const std::string &filepath,bool bBinary)
 
 void Pbm::BinaryMatrixToTextMatrix()
 {
-    for (size_t i = 0, index = 0; i < height_; ++i,++index) //共有height_行
+    for (int i = 0, index = 0; i < height_; ++i,++index) //共有height_行
     {
         for (int j = 0,bitoff = 0; j < width_; ++j,++bitoff) //共有width_列
         {
@@ -130,10 +130,10 @@ void Pbm::BinaryMatrixToTextMatrix()
                 bitoff = 0;
                 ++index; 
             }
-            if(matrix_[index] & (0x80 >> bitoff))	
-                textmatrix_.push_back(1);
+            if(matrix_byte_[index] & (0x80 >> bitoff))	
+                matrix_int_.push_back(1);
             else
-                textmatrix_.push_back(0);
+                matrix_int_.push_back(0);
         }
     }
 }

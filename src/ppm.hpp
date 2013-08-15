@@ -36,8 +36,8 @@ private:
     void ReadMatrixP3(std::ifstream&);
     void ReadMatrixP6(std::ifstream&);
     int maxvalue_;
-    PPMBinaryMatrix matrix_;
-    PPMTextMatrix textmatrix_;
+    PPMBinaryMatrix matrix_byte_;
+    PPMTextMatrix matrix_int_;
 };
 
 #endif
