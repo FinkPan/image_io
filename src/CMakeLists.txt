@@ -1,9 +1,17 @@
-#添加include目录
-include_directories(${PROJECT_SOURCE_DIR}/include/image_io)
 
-#按目录搜索源文件,将文件添加到项目中.
-set(LIB_SRC "${PROJECT_SOURCE_DIR}/src/image_io.cpp" 
-			"${PROJECT_SOURCE_DIR}/include/image_io/image_io.hpp")
-			
-#指定编译为库文件
-add_library(image_io ${LIB_SRC})
+#包含include搜索			  
+include_directories(${PROJECT_SOURCE_DIR}/include/image_io/)
+include_directories(${PROJECT_SOURCE_DIR}/src/)
+#源文件
+file(GLOB lib_srcs *.cpp *.hpp)
+#头文件
+file(GLOB lib_hdrs ${PROJECT_SOURCE_DIR}/include/image_io/*.*)
+
+#Define a grouping for sources in the makefile.
+source_group("INCLUDE" FILES ${lib_hdrs} )
+source_group("SRC" FILES ${lib_srcs})
+
+
+#生成静态库
+add_library(image_io STATIC ${lib_hdrs} ${lib_srcs})
+

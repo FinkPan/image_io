@@ -1,10 +1,19 @@
-#添加include目录
-include_directories(${PROJECT_SOURCE_DIR}/include/image_io)
+#包含include搜索			  
+include_directories(${PROJECT_SOURCE_DIR}/include/image_io/)
+include_directories(${PROJECT_SOURCE_DIR}/src/)
 
-#按目录搜索源文件,将文件添加到项目中.
-set(APP_SRC main.cpp)
-#指定编译为可执行文件
-add_executable(unit_test ${APP_SRC})
-
+#源文件
+set(gtest_unit gtest_pgm.cpp
+			   gtest_ppm.cpp)
+#生成可执行文件			  
+add_library(gtest_unit ${gtest_unit})
 #设置依赖的动态库
-target_link_libraries(unit_test image_io)
+target_link_libraries(gtest_unit image_io "E:/LIB/gtest-1.6.0/gtestlib/lib/gtestd.lib")
+
+
+include_directories(E:/LIB/gtest-1.6.0/gtestlib/include/)
+set(gtest_main gtest_main.cpp)
+#生成可执行文件			  
+add_executable(gtest_main ${gtest_main})
+#设置依赖的动态库
+target_link_libraries(gtest_main image_io "E:/LIB/gtest-1.6.0/gtestlib/lib/gtestd.lib")
